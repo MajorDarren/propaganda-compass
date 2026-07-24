@@ -10,7 +10,6 @@ import requests
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Set a global timeout for all socket operations (30 seconds)
 socket.setdefaulttimeout(30)
 
 def clean_html(raw_html):
@@ -20,13 +19,11 @@ def clean_html(raw_html):
     return clean_text.strip()[:250] + "..." if len(clean_text) > 250 else clean_text.strip()
 
 def parse_published(entry):
-    """Convert feedparser's published_parsed to a timezone-aware datetime, or None."""
     if hasattr(entry, 'published_parsed') and entry.published_parsed:
         return datetime.fromtimestamp(time.mktime(entry.published_parsed), tz=timezone.utc)
     return None
 
-def match_articles(west_articles, east_articles, similarity_threshold=0.45, max_time_hours=6):
-    """Match West and East articles with similarity and time proximity."""
+def match_articles(west_articles, east_articles, similarity_threshold=0.55, max_time_hours=6):
     if not west_articles or not east_articles:
         return west_articles + east_articles
 
@@ -63,26 +60,33 @@ def match_articles(west_articles, east_articles, similarity_threshold=0.45, max_
     for score, w_idx, e_idx in candidates:
         if w_idx not in used_west and e_idx not in used_east:
             topic_id = f"match-{uuid.uuid4().hex[:8]}"
+            # Compute time difference
+            delta_h = None
+            if west_dts[w_idx] and east_dts[e_idx]:
+                delta_h = round(abs((west_dts[w_idx] - east_dts[e_idx]).total_seconds()) / 3600.0, 1)
+            # Store in both articles
             west_articles[w_idx]['topic_id'] = topic_id
             west_articles[w_idx]['match_score'] = score
+            west_articles[w_idx]['time_diff_hours'] = delta_h
             east_articles[e_idx]['topic_id'] = topic_id
             east_articles[e_idx]['match_score'] = score
+            east_articles[e_idx]['time_diff_hours'] = delta_h
             used_west.add(w_idx)
             used_east.add(e_idx)
-            delta_str = "N/A"
-            if west_dts[w_idx] and east_dts[e_idx]:
-                delta_h = abs((west_dts[w_idx] - east_dts[e_idx]).total_seconds()) / 3600.0
-                delta_str = f"{delta_h:.1f}h"
+            delta_str = f"{delta_h}h" if delta_h is not None else "N/A"
             print(f"Matched ({score:.2f}, Δt={delta_str}): '{west_articles[w_idx]['title']}' <---> '{east_articles[e_idx]['title']}'")
 
+    # Assign solo IDs and clear match data for unmatched
     for w_idx, item in enumerate(west_articles):
         if w_idx not in used_west:
             item['topic_id'] = f"solo-w-{uuid.uuid4().hex[:8]}"
             item['match_score'] = None
+            item['time_diff_hours'] = None
     for e_idx, item in enumerate(east_articles):
         if e_idx not in used_east:
             item['topic_id'] = f"solo-e-{uuid.uuid4().hex[:8]}"
             item['match_score'] = None
+            item['time_diff_hours'] = None
 
     return west_articles + east_articles
 
@@ -133,7 +137,8 @@ def scrape_and_push():
                         'published_at': published,
                         'published_dt': published_dt,
                         'topic_id': None,
-                        'match_score': None
+                        'match_score': None,
+                        'time_diff_hours': None
                     }
                     if viewpoint == 'West':
                         west_articles.append(item)
@@ -141,8 +146,13 @@ def scrape_and_push():
                         east_articles.append(item)
 
     all_articles = match_articles(west_articles, east_articles,
+<<<<<<< Updated upstream
                                   similarity_threshold=0.60,
                                   max_time_hours=10)
+=======
+                                  similarity_threshold=0.55,
+                                  max_time_hours=6)
+>>>>>>> Stashed changes
 
     # Remove datetime object before sending JSON
     for article in all_articles:

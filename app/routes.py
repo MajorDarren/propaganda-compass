@@ -8,18 +8,21 @@ main_bp = Blueprint('main', __name__)
 def index():
     conn = get_db_connection(current_app.config['DATABASE_PATH'])
     
-    # 1. Fetch matched pairs (including match_score)
+    # Fetch matched pairs, sorted by match_score descending
     matched_rows = conn.execute('''
         SELECT 
-            w.title as w_title, w.url as w_url, w.source as w_source, w.summary as w_summary, w.match_score as w_score,
-            e.title as e_title, e.url as e_url, e.source as e_source, e.summary as e_summary, e.match_score as e_score
+            w.title as w_title, w.url as w_url, w.source as w_source, w.summary as w_summary, 
+            w.match_score as w_score, w.time_diff_hours as w_time_diff,
+            e.title as e_title, e.url as e_url, e.source as e_source, e.summary as e_summary,
+            e.match_score as e_score, e.time_diff_hours as e_time_diff
         FROM articles w
         JOIN articles e ON w.topic_id = e.topic_id
         WHERE w.viewpoint = 'West' AND e.viewpoint = 'East'
-        ORDER BY w.id DESC LIMIT 15
+        ORDER BY w.match_score DESC
+        LIMIT 15
     ''').fetchall()
 
-    # 2. Fetch solo unmatched articles for each side
+    # Solo articles (unchanged)
     west_solos = conn.execute('''
         SELECT * FROM articles 
         WHERE viewpoint = 'West' 
@@ -37,6 +40,7 @@ def index():
     conn.close()
     return render_template('index.html', pairs=matched_rows, west_solos=west_solos, east_solos=east_solos)
 
+# /api/ingest remains the same, but update INSERT to include time_diff_hours
 @main_bp.route('/api/ingest', methods=['POST'])
 def ingest():
     secret = request.headers.get('X-Webhook-Secret')
@@ -47,15 +51,14 @@ def ingest():
     articles = data.get('articles', [])
     
     conn = get_db_connection(current_app.config['DATABASE_PATH'])
-    
     conn.execute('DELETE FROM articles;')
     
     inserted_count = 0
     for item in articles:
         try:
             conn.execute('''
-                INSERT INTO articles (title, url, source, summary, viewpoint, published_at, topic_id, match_score)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO articles (title, url, source, summary, viewpoint, published_at, topic_id, match_score, time_diff_hours)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 item['title'],
                 item['url'],
@@ -64,7 +67,8 @@ def ingest():
                 item['viewpoint'],
                 item.get('published_at', ''),
                 item.get('topic_id', ''),
-                item.get('match_score')   # can be None
+                item.get('match_score'),
+                item.get('time_diff_hours')
             ))
             inserted_count += 1
         except Exception as e:

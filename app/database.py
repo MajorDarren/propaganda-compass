@@ -20,16 +20,23 @@ def init_db(db_path):
             viewpoint TEXT NOT NULL,
             published_at TEXT,
             topic_id TEXT,
-            match_score REAL,          -- new column
+            match_score REAL,
+            time_diff_hours REAL,          -- new column for time difference in hours
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
-    # For existing databases, add match_score if missing
+    # Add match_score if missing
     try:
         conn.execute("ALTER TABLE articles ADD COLUMN match_score REAL")
     except sqlite3.OperationalError:
-        pass  # already exists
+        pass
+    
+    # Add time_diff_hours if missing
+    try:
+        conn.execute("ALTER TABLE articles ADD COLUMN time_diff_hours REAL")
+    except sqlite3.OperationalError:
+        pass
 
     conn.commit()
     conn.close()
