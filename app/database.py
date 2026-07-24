@@ -10,6 +10,7 @@ def init_db(db_path):
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     conn = get_db_connection(db_path)
     
+    # Articles table
     conn.execute('''
         CREATE TABLE IF NOT EXISTS articles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,22 +22,29 @@ def init_db(db_path):
             published_at TEXT,
             topic_id TEXT,
             match_score REAL,
-            time_diff_hours REAL,          -- new column for time difference in hours
+            time_diff_hours REAL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
-    # Add match_score if missing
-    try:
-        conn.execute("ALTER TABLE articles ADD COLUMN match_score REAL")
-    except sqlite3.OperationalError:
-        pass
-    
-    # Add time_diff_hours if missing
-    try:
-        conn.execute("ALTER TABLE articles ADD COLUMN time_diff_hours REAL")
-    except sqlite3.OperationalError:
-        pass
+    # Add missing columns (safe migrations)
+    for col in ['match_score', 'time_diff_hours']:
+        try:
+            conn.execute(f"ALTER TABLE articles ADD COLUMN {col} REAL")
+        except sqlite3.OperationalError:
+            pass
+
+    # Match history table
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS match_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            west_source TEXT NOT NULL,
+            east_source TEXT NOT NULL,
+            score REAL NOT NULL,
+            time_diff_hours REAL,
+            matched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
 
     conn.commit()
     conn.close()

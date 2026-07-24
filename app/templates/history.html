@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Propaganda Compass | History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        /* Reuse the same dark theme from main page – I'll include minimal styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Inter", sans-serif; background: #060b18; color: #f1f5f9; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { margin-bottom: 1.5rem; }
+        h1 a { color: #38bdf8; text-decoration: none; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: rgba(20,30,60,0.65); border-radius: 12px; overflow: hidden; }
+        th, td { padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid rgba(56,189,248,0.12); }
+        th { background: rgba(6,11,24,0.7); color: #94a3b8; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        .score-badge { padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+        .high { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .medium { background: rgba(250,204,21,0.15); color: #facc15; }
+        .low { background: rgba(248,113,113,0.15); color: #f87171; }
+        .back-link { display: inline-block; margin-bottom: 1rem; color: #38bdf8; }
+        .meta { font-size: 0.7rem; color: #64748b; }
+        @media (max-width: 768px) { th, td { padding: 0.5rem; font-size: 0.8rem; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Compass</a>
+    <h1>📜 Historical Matches</h1>
+    <p style="color: #94a3b8; margin-bottom: 1.5rem;">Showing the most recent {{ history|length }} matched pairs.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>West Source</th>
+                    <th>East Source</th>
+                    <th>Score</th>
+                    <th>Time diff (h)</th>
+                    <th>Recorded at</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in history %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entry.west_source }}</td>
+                    <td>{{ entry.east_source }}</td>
+                    <td>
+                        {% set score = entry.score|float %}
+                        {% set percent = (score * 100)|round(0)|int %}
+                        <span class="score-badge 
+                            {% if percent >= 60 %}high
+                            {% elif percent >= 50 %}medium
+                            {% else %}low{% endif %}">
+                            {{ percent }}%
+                        </span>
+                    </td>
+                    <td>{{ entry.time_diff_hours|float|round(1) if entry.time_diff_hours else '—' }}</td>
+                    <td class="meta">{{ entry.matched_at }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" style="text-align:center; padding:2rem; color:#64748b;">No historical data yet. Run a scrape to start building history.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

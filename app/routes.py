@@ -101,5 +101,50 @@ def ingest():
             print(f"Error inserting article: {e}")
 
     conn.commit()
+
+    # --- Insert current matches into history ---
+    matched_pairs = conn.execute('''
+        SELECT 
+            w.source as west_source,
+            e.source as east_source,
+            w.match_score as score,
+            w.time_diff_hours as time_diff
+        FROM articles w
+        JOIN articles e ON w.topic_id = e.topic_id
+        WHERE w.viewpoint = 'West' AND e.viewpoint = 'East'
+          AND w.topic_id LIKE 'match-%'
+    ''').fetchall()
+
+    for pair in matched_pairs:
+        conn.execute('''
+            INSERT INTO match_history (west_source, east_source, score, time_diff_hours)
+            VALUES (?, ?, ?, ?)
+        ''', (pair['west_source'], pair['east_source'], pair['score'], pair['time_diff']))
+
+    # Prune history to keep only the most recent 500 records
+    conn.execute('''
+        DELETE FROM match_history 
+        WHERE id NOT IN (
+            SELECT id FROM match_history 
+            ORDER BY matched_at DESC 
+            LIMIT 500
+        )
+    ''')
+    conn.commit()
+    # --- End of history insertion ---
+
     conn.close()
     return jsonify({'status': 'success', 'inserted': inserted_count}), 200
+
+@main_bp.route('/history')
+def history():
+    conn = get_db_connection(current_app.config['DATABASE_PATH'])
+    
+    # Get all history entries, newest first
+    history_rows = conn.execute('''
+        SELECT * FROM match_history 
+        ORDER BY matched_at DESC
+    ''').fetchall()
+    
+    conn.close()
+    return render_template('history.html', history=history_rows)
