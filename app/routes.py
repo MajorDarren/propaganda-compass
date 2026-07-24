@@ -51,8 +51,9 @@ def ingest():
 
     for item in articles:
         try:
+            # Using 'INSERT OR REPLACE INTO' ensures existing URLs get updated with new topic_ids
             conn.execute('''
-                INSERT INTO articles (title, url, source, summary, viewpoint, published_at, topic_id)
+                INSERT OR REPLACE INTO articles (title, url, source, summary, viewpoint, published_at, topic_id)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             ''', (
                 item['title'], 
@@ -64,8 +65,8 @@ def ingest():
                 item.get('topic_id', '')
             ))
             inserted_count += 1
-        except sqlite3.IntegrityError:
-            pass
+        except Exception as e:
+            print(f"Error inserting article: {e}")
 
     conn.commit()
     conn.close()
