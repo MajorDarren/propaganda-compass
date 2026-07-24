@@ -1,10 +1,30 @@
 {
   "West": [
-    {"name": "BBC News", "rss": "http://feeds.bbci.co.uk/news/world/rss.xml"},
-    {"name": "CNN World", "rss": "http://rss.cnn.com/rss/edition_world.rss"}
+    {
+      "name": "BBC World News",
+      "rss": "http://feeds.bbci.co.uk/news/world/rss.xml"
+    },
+    {
+      "name": "Reuters World",
+      "rss": "https://www.reutersagency.com/feed/?best-regions=asia&post_type=best"
+    },
+    {
+      "name": "Deutsche Welle",
+      "rss": "https://rss.dw.com/xml/rss-out-world"
+    }
   ],
   "East": [
-    {"name": "RT World", "rss": "https://www.rt.com/rss/news/"},
-    {"name": "CGTN World", "rss": "https://www.cgtn.com/rss/world.xml"}
+    {
+      "name": "RT World",
+      "rss": "https://www.rt.com/rss/news/"
+    },
+    {
+      "name": "CGTN World",
+      "rss": "https://www.cgtn.com/subscribe/rss/world.xml"
+    },
+    {
+      "name": "TASS World",
+      "rss": "https://tass.com/rss/v2.xml"
+    }
   ]
 }
