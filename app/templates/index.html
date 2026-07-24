@@ -231,6 +231,7 @@
             display: flex;
             align-items: center;
             gap: 0.6rem;
+            flex-wrap: wrap;
         }
 
         .pair-header .dot {
@@ -257,6 +258,38 @@
                 opacity: 1;
                 transform: scale(1.2);
             }
+        }
+
+        /* ----- New combined match info in header ----- */
+        .match-info {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-left: auto;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .match-info .score-badge {
+            padding: 0.1rem 0.6rem;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .match-info .score-badge.high { color: #4ade80; border-color: rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.08); }
+        .match-info .score-badge.medium { color: #facc15; border-color: rgba(250, 204, 21, 0.3); background: rgba(250, 204, 21, 0.08); }
+        .match-info .score-badge.low { color: #f87171; border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.08); }
+        .match-info .time-diff {
+            color: var(--text-muted);
+        }
+        .match-info .help-icon {
+            color: var(--text-muted);
+            cursor: help;
+            font-size: 0.7rem;
+            margin-left: 0.2rem;
         }
 
         .pair-body {
@@ -319,22 +352,6 @@
             border-radius: 100px;
             border: 1px solid rgba(255, 255, 255, 0.04);
         }
-
-        /* ----- NEW: confidence badge ----- */
-        .confidence-badge {
-            display: inline-block;
-            font-size: 0.6rem;
-            font-weight: 600;
-            padding: 0.1rem 0.6rem;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-            margin-left: 0.3rem;
-            color: var(--text-secondary);
-        }
-        .confidence-badge.high { color: #4ade80; border-color: rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.08); }
-        .confidence-badge.medium { color: #facc15; border-color: rgba(250, 204, 21, 0.3); background: rgba(250, 204, 21, 0.08); }
-        .confidence-badge.low { color: #f87171; border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.08); }
 
         .side .card h3 {
             font-size: 1.05rem;
@@ -572,6 +589,16 @@
             .pair-card:hover {
                 transform: translateY(-2px);
             }
+
+            .match-info {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-start;
+                gap: 0.4rem;
+            }
+            .pair-header {
+                flex-wrap: wrap;
+            }
         }
 
         @media (max-width: 480px) {
@@ -650,9 +677,6 @@
 
 <body>
 
-    <!-- ============================================================
-    HEADER
-    ============================================================ -->
     <header>
         <div class="logo-icon">
             <i class="fas fa-compass"></i>
@@ -680,6 +704,34 @@
                 <span class="dot"></span>
                 <span>Shared Topic Perspective Comparison</span>
                 <span class="dot east-dot" style="margin-left:auto;"></span>
+
+                <!-- Combined match info (score + time diff) -->
+                <div class="match-info">
+                    {% if pair.w_score is not none %}
+                        {% set score = pair.w_score|float %}
+                        {% if score >= 0.6 %}
+                            <span class="score-badge high">
+                                <i class="fas fa-check-circle"></i> {{ "%.2f"|format(score) }}
+                            </span>
+                        {% elif score >= 0.5 %}
+                            <span class="score-badge medium">
+                                <i class="fas fa-minus-circle"></i> {{ "%.2f"|format(score) }}
+                            </span>
+                        {% else %}
+                            <span class="score-badge low">
+                                <i class="fas fa-exclamation-circle"></i> {{ "%.2f"|format(score) }}
+                            </span>
+                        {% endif %}
+                        <span class="time-diff">
+                            <i class="far fa-clock"></i> {{ pair.w_time_diff|float|round(1) }}h apart
+                        </span>
+                        <span class="help-icon" title="Confidence score (0-1) indicates how similar the articles are. Time difference shows how far apart they were published.">
+                            <i class="fas fa-question-circle"></i>
+                        </span>
+                    {% else %}
+                        <span class="score-badge">N/A</span>
+                    {% endif %}
+                </div>
             </div>
             <div class="pair-body">
                 <!-- WEST SIDE -->
@@ -688,31 +740,6 @@
                         <i class="fas fa-chevron-circle-right tag-icon"></i>
                         Western Angle
                         <span class="source-label">{{ pair.w_source }}</span>
-                        <!-- Confidence badge with time diff -->
-                        {% if pair.w_score is not none %}
-                            {% set score = pair.w_score|float %}
-                            {% if score >= 0.6 %}
-                                <span class="confidence-badge high">
-                                    <i class="fas fa-check-circle"></i>
-                                    {{ "%.2f"|format(score) }}
-                                    {% if pair.w_time_diff is not none %} · {{ pair.w_time_diff|float|round(1) }}h{% endif %}
-                                </span>
-                            {% elif score >= 0.5 %}
-                                <span class="confidence-badge medium">
-                                    <i class="fas fa-minus-circle"></i>
-                                    {{ "%.2f"|format(score) }}
-                                    {% if pair.w_time_diff is not none %} · {{ pair.w_time_diff|float|round(1) }}h{% endif %}
-                                </span>
-                            {% else %}
-                                <span class="confidence-badge low">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    {{ "%.2f"|format(score) }}
-                                    {% if pair.w_time_diff is not none %} · {{ pair.w_time_diff|float|round(1) }}h{% endif %}
-                                </span>
-                            {% endif %}
-                        {% else %}
-                            <span class="confidence-badge">N/A</span>
-                        {% endif %}
                     </div>
                     <div class="card">
                         <h3>
@@ -735,31 +762,6 @@
                         <i class="fas fa-chevron-circle-right tag-icon"></i>
                         Eastern Angle
                         <span class="source-label">{{ pair.e_source }}</span>
-                        <!-- Confidence badge with time diff (same value) -->
-                        {% if pair.e_score is not none %}
-                            {% set score = pair.e_score|float %}
-                            {% if score >= 0.6 %}
-                                <span class="confidence-badge high">
-                                    <i class="fas fa-check-circle"></i>
-                                    {{ "%.2f"|format(score) }}
-                                    {% if pair.e_time_diff is not none %} · {{ pair.e_time_diff|float|round(1) }}h{% endif %}
-                                </span>
-                            {% elif score >= 0.5 %}
-                                <span class="confidence-badge medium">
-                                    <i class="fas fa-minus-circle"></i>
-                                    {{ "%.2f"|format(score) }}
-                                    {% if pair.e_time_diff is not none %} · {{ pair.e_time_diff|float|round(1) }}h{% endif %}
-                                </span>
-                            {% else %}
-                                <span class="confidence-badge low">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    {{ "%.2f"|format(score) }}
-                                    {% if pair.e_time_diff is not none %} · {{ pair.e_time_diff|float|round(1) }}h{% endif %}
-                                </span>
-                            {% endif %}
-                        {% else %}
-                            <span class="confidence-badge">N/A</span>
-                        {% endif %}
                     </div>
                     <div class="card">
                         <h3>
@@ -837,6 +839,10 @@
     ============================================================ -->
     <div class="footer-note">
         <i class="fas fa-compass"></i> &nbsp; Propaganda Compass &bull; AI-powered perspective mapping
+        <br>
+        <span style="font-size:0.65rem; opacity:0.6;">
+            Confidence score: 0-1, higher = more semantically similar. Time difference: hours between publication times.
+        </span>
     </div>
 
 </body>
