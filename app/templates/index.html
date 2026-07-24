@@ -3,34 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Propaganda Compass | Choose Your View</title>
+    <title>Propaganda Compass | Side-by-Side Perspectives</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
-        header { text-align: center; padding: 2rem 1rem; background: #1e293b; border-bottom: 1px solid #334155; }
-        header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding-bottom: 3rem; }
+        header { text-align: center; padding: 2rem 1rem; background: #1e293b; border-bottom: 1px solid #334155; margin-bottom: 2rem; }
+        header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; letter-spacing: 1px; }
         header p { color: #94a3b8; font-size: 0.95rem; }
         
-        .container { display: flex; flex-direction: row; width: 100%; min-height: calc(100vh - 100px); }
-        .column { flex: 1; padding: 1.5rem; overflow-y: auto; }
-        .column-west { border-right: 1px solid #334155; background: #0f172a; }
-        .column-east { background: #111827; }
+        .section-title { width: 90%; max-width: 1200px; margin: 0 auto 1rem auto; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; color: #cbd5e1; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; }
+
+        .pairs-container { width: 90%; max-width: 1200px; margin: 0 auto 3rem auto; display: flex; flex-direction: column; gap: 1.5rem; }
         
-        .col-title { font-size: 1.3rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: space-between; padding-bottom: 0.5rem; border-bottom: 2px solid; }
-        .column-west .col-title { color: #38bdf8; border-color: #38bdf8; }
-        .column-east .col-title { color: #f43f5e; border-color: #f43f5e; }
+        .pair-card { background: #1e293b; border-radius: 10px; border: 1px solid #334155; overflow: hidden; }
+        .pair-header { background: #0f172a; padding: 0.6rem 1rem; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #f59e0b; border-bottom: 1px solid #334155; }
         
-        .card { background: #1e293b; border-radius: 8px; padding: 1.2rem; margin-bottom: 1.2rem; border: 1px solid #334155; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-2px); }
-        .card h3 a { color: #f1f5f9; text-decoration: none; font-size: 1.1rem; line-height: 1.4; }
+        .pair-body { display: flex; flex-direction: row; }
+        .side { flex: 1; padding: 1.2rem; }
+        .side-west { border-right: 1px solid #334155; background: #0f172a; }
+        .side-east { background: #111827; }
+        
+        .side-tag { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .west-tag { color: #38bdf8; }
+        .east-tag { color: #f43f5e; }
+
+        .card h3 a { color: #f1f5f9; text-decoration: none; font-size: 1.05rem; line-height: 1.4; }
         .card h3 a:hover { text-decoration: underline; }
-        .meta { display: flex; gap: 10px; font-size: 0.8rem; color: #94a3b8; margin: 0.5rem 0 0.8rem 0; }
-        .source-tag { font-weight: bold; color: #cbd5e1; }
-        .summary { font-size: 0.9rem; color: #cbd5e1; line-height: 1.5; }
+        .meta { font-size: 0.8rem; color: #94a3b8; margin: 0.4rem 0 0.6rem 0; }
+        .summary { font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; }
+
+        .solos-container { width: 90%; max-width: 1200px; margin: 0 auto; display: flex; gap: 2rem; }
+        .column { flex: 1; }
+        .column-title { font-size: 1.1rem; margin-bottom: 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid; text-transform: uppercase; }
+        .col-west-title { color: #38bdf8; border-color: #38bdf8; }
+        .col-east-title { color: #f43f5e; border-color: #f43f5e; }
+        
+        .solo-card { background: #1e293b; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #334155; }
 
         @media (max-width: 768px) {
-            .container { flex-direction: column; }
-            .column-west { border-right: none; border-bottom: 2px solid #334155; }
+            .pair-body, .solos-container { flex-direction: column; }
+            .side-west { border-right: none; border-bottom: 1px solid #334155; }
         }
     </style>
 </head>
@@ -38,53 +50,58 @@
 
     <header>
         <h1>PROPAGANDA COMPASS</h1>
-        <p>Compare perspective streams side-by-side in real time.</p>
+        <p>AI-matched news perspectives side-by-side in real time.</p>
     </header>
 
-    <div class="container">
-        <!-- WESTERN PERSPECTIVE -->
-        <div class="column column-west">
-            <div class="col-title">
-                <span>Western Media</span>
-                <span style="font-size: 0.8rem;">({{ west|length }} Stories)</span>
-            </div>
-            {% for item in west %}
-            <div class="card">
-                <h3><a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.title }}</a></h3>
-                <div class="meta">
-                    <span class="source-tag">{{ item.source }}</span>
-                    <span>•</span>
-                    <span>{{ item.published_at }}</span>
+    <!-- MATCHED PAIRS SECTION -->
+    <h2 class="section-title">⚡ Directly Matched Story Topics ({{ pairs|length }})</h2>
+    <div class="pairs-container">
+        {% for pair in pairs %}
+        <div class="pair-card">
+            <div class="pair-header">Shared Topic Perspective Comparison</div>
+            <div class="pair-body">
+                <!-- WEST SIDE -->
+                <div class="side side-west">
+                    <div class="side-tag west-tag">Western Angle ({{ pair.w_source }})</div>
+                    <div class="card">
+                        <h3><a href="{{ pair.w_url }}" target="_blank" rel="noopener">{{ pair.w_title }}</a></h3>
+                        {% if pair.w_summary %}<p class="summary">{{ pair.w_summary }}</p>{% endif %}
+                    </div>
                 </div>
-                {% if item.summary %}
-                <p class="summary">{{ item.summary }}</p>
-                {% endif %}
+                <!-- EAST SIDE -->
+                <div class="side side-east">
+                    <div class="side-tag east-tag">Eastern Angle ({{ pair.e_source }})</div>
+                    <div class="card">
+                        <h3><a href="{{ pair.e_url }}" target="_blank" rel="noopener">{{ pair.e_title }}</a></h3>
+                        {% if pair.e_summary %}<p class="summary">{{ pair.e_summary }}</p>{% endif %}
+                    </div>
+                </div>
             </div>
-            {% else %}
-            <p style="color: #64748b;">No Western perspective stories aggregated yet.</p>
+        </div>
+        {% else %}
+        <p style="color: #64748b;">No high-confidence topic matches found in the current scrape run.</p>
+        {% endfor %}
+    </div>
+
+    <!-- STANDALONE STORIES SECTION -->
+    <h2 class="section-title">📰 Standalone Regional Stories</h2>
+    <div class="solos-container">
+        <div class="column">
+            <h3 class="column-title col-west-title">Western Stream</h3>
+            {% for item in west_solos %}
+            <div class="solo-card">
+                <h3><a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.title }}</a></h3>
+                <div class="meta"><span>{{ item.source }}</span></div>
+            </div>
             {% endfor %}
         </div>
-
-        <!-- EASTERN PERSPECTIVE -->
-        <div class="column column-east">
-            <div class="col-title">
-                <span>Eastern Media</span>
-                <span style="font-size: 0.8rem;">({{ east|length }} Stories)</span>
-            </div>
-            {% for item in east %}
-            <div class="card">
+        <div class="column">
+            <h3 class="column-title col-east-title">Eastern Stream</h3>
+            {% for item in east_solos %}
+            <div class="solo-card">
                 <h3><a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.title }}</a></h3>
-                <div class="meta">
-                    <span class="source-tag">{{ item.source }}</span>
-                    <span>•</span>
-                    <span>{{ item.published_at }}</span>
-                </div>
-                {% if item.summary %}
-                <p class="summary">{{ item.summary }}</p>
-                {% endif %}
+                <div class="meta"><span>{{ item.source }}</span></div>
             </div>
-            {% else %}
-            <p style="color: #64748b;">No Eastern perspective stories aggregated yet.</p>
             {% endfor %}
         </div>
     </div>
