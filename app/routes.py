@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, current_app
 import sqlite3
+from datetime import datetime
 from app.database import get_db_connection
 
 main_bp = Blueprint('main', __name__)
@@ -24,7 +25,17 @@ def index():
 
     # Get last updated timestamp (max created_at from all articles)
     last_updated_row = conn.execute('SELECT MAX(created_at) as last_updated FROM articles').fetchone()
-    last_updated = last_updated_row['last_updated'] if last_updated_row and last_updated_row['last_updated'] else None
+    last_updated_raw = last_updated_row['last_updated'] if last_updated_row else None
+    
+    # Convert string to datetime object for template formatting
+    last_updated = None
+    if last_updated_raw:
+        try:
+            # SQLite returns ISO format string: 'YYYY-MM-DD HH:MM:SS'
+            last_updated = datetime.fromisoformat(last_updated_raw)
+        except (ValueError, TypeError):
+            # Fallback: keep as string if parsing fails
+            last_updated = last_updated_raw
 
     # Solo articles
     west_solos = conn.execute('''
