@@ -2,8 +2,8 @@ import os
 import json
 import re
 import uuid
-import time
 import socket
+import calendar
 from datetime import datetime, timezone
 import feedparser
 import requests
@@ -19,8 +19,10 @@ def clean_html(raw_html):
     return clean_text.strip()[:250] + "..." if len(clean_text) > 250 else clean_text.strip()
 
 def parse_published(entry):
+    """Convert feedparser's published_parsed (UTC) to a timezone-aware datetime."""
     if hasattr(entry, 'published_parsed') and entry.published_parsed:
-        return datetime.fromtimestamp(time.mktime(entry.published_parsed), tz=timezone.utc)
+        timestamp = calendar.timegm(entry.published_parsed)
+        return datetime.fromtimestamp(timestamp, tz=timezone.utc)
     return None
 
 def match_articles(west_articles, east_articles, similarity_threshold=0.55, max_time_hours=6):
@@ -60,11 +62,9 @@ def match_articles(west_articles, east_articles, similarity_threshold=0.55, max_
     for score, w_idx, e_idx in candidates:
         if w_idx not in used_west and e_idx not in used_east:
             topic_id = f"match-{uuid.uuid4().hex[:8]}"
-            # Compute time difference
             delta_h = None
             if west_dts[w_idx] and east_dts[e_idx]:
                 delta_h = round(abs((west_dts[w_idx] - east_dts[e_idx]).total_seconds()) / 3600.0, 1)
-            # Store in both articles
             west_articles[w_idx]['topic_id'] = topic_id
             west_articles[w_idx]['match_score'] = score
             west_articles[w_idx]['time_diff_hours'] = delta_h
@@ -76,7 +76,6 @@ def match_articles(west_articles, east_articles, similarity_threshold=0.55, max_
             delta_str = f"{delta_h}h" if delta_h is not None else "N/A"
             print(f"Matched ({score:.2f}, Δt={delta_str}): '{west_articles[w_idx]['title']}' <---> '{east_articles[e_idx]['title']}'")
 
-    # Assign solo IDs and clear match data for unmatched
     for w_idx, item in enumerate(west_articles):
         if w_idx not in used_west:
             item['topic_id'] = f"solo-w-{uuid.uuid4().hex[:8]}"
@@ -145,9 +144,14 @@ def scrape_and_push():
                     else:
                         east_articles.append(item)
 
-       all_articles = match_articles(west_articles, east_articles,
-                                  similarity_threshold=0.60,
-                                  max_time_hours=6)
+    # --- This line was mis-indented and inside the loop ---
+    all_articles = match_articles(
+        west_articles,
+        east_articles,
+        similarity_threshold=0.60,
+        max_time_hours=6
+    )
+    # --- End of fix ---
 
     # Remove datetime object before sending JSON
     for article in all_articles:
