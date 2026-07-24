@@ -23,6 +23,14 @@ def index():
         LIMIT 15
     ''').fetchall()
 
+    # Get distinct source names for each viewpoint
+    west_sources = conn.execute('SELECT DISTINCT source FROM articles WHERE viewpoint = "West" ORDER BY source').fetchall()
+    east_sources = conn.execute('SELECT DISTINCT source FROM articles WHERE viewpoint = "East" ORDER BY source').fetchall()
+
+    # Convert to list of strings
+    west_source_list = [row['source'] for row in west_sources]
+    east_source_list = [row['source'] for row in east_sources]
+
     # Get last updated timestamp (max created_at from all articles)
     last_updated_row = conn.execute('SELECT MAX(created_at) as last_updated FROM articles').fetchone()
     last_updated_raw = last_updated_row['last_updated'] if last_updated_row else None
@@ -31,10 +39,8 @@ def index():
     last_updated = None
     if last_updated_raw:
         try:
-            # SQLite returns ISO format string: 'YYYY-MM-DD HH:MM:SS'
             last_updated = datetime.fromisoformat(last_updated_raw)
         except (ValueError, TypeError):
-            # Fallback: keep as string if parsing fails
             last_updated = last_updated_raw
 
     # Solo articles
@@ -57,7 +63,9 @@ def index():
                            pairs=matched_rows, 
                            west_solos=west_solos, 
                            east_solos=east_solos,
-                           last_updated=last_updated)
+                           last_updated=last_updated,
+                           west_sources=west_source_list,
+                           east_sources=east_source_list)
 
 @main_bp.route('/api/ingest', methods=['POST'])
 def ingest():

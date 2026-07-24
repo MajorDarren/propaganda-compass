@@ -673,7 +673,7 @@
             opacity: 0.5;
         }
 
-        /* ---------- ADDITIONAL FILTER STYLES ---------- */
+        /* ---------- FILTER STYLES ---------- */
         .filter-container {
             display: flex;
             align-items: center;
@@ -704,6 +704,11 @@
             color: var(--text-muted);
             white-space: nowrap;
         }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
         @media (max-width: 768px) {
             .filter-container {
                 flex-direction: column;
@@ -733,34 +738,34 @@
     </header>
 
     <!-- ============================================================
-    FILTER & LAST UPDATED
+    FILTERS & LAST UPDATED
     ============================================================ -->
     <div class="filter-container">
-        <div>
+        <div class="filter-group">
+            <label for="west-source-filter"><i class="fas fa-globe-americas"></i> West source:</label>
+            <select id="west-source-filter">
+                <option value="all">All sources</option>
+                {% for src in west_sources %}
+                    <option value="{{ src }}">{{ src }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="east-source-filter"><i class="fas fa-globe-asia"></i> East source:</label>
+            <select id="east-source-filter">
+                <option value="all">All sources</option>
+                {% for src in east_sources %}
+                    <option value="{{ src }}">{{ src }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
             <label for="confidence-filter"><i class="fas fa-sliders-h"></i> Confidence:</label>
             <select id="confidence-filter">
                 <option value="0">All matches</option>
                 <option value="60">≥ 60%</option>
                 <option value="70">≥ 70%</option>
                 <option value="80">≥ 80%</option>
-            </select>
-        </div>
-        <div>
-            <label for="west-source-filter"><i class="fas fa-globe-americas"></i> West:</label>
-            <select id="west-source-filter">
-                <option value="all">All sources</option>
-                {% for src in west_sources %}
-                <option value="{{ src }}">{{ src }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="east-source-filter"><i class="fas fa-globe-asia"></i> East:</label>
-            <select id="east-source-filter">
-                <option value="all">All sources</option>
-                {% for src in east_sources %}
-                <option value="{{ src }}">{{ src }}</option>
-                {% endfor %}
             </select>
         </div>
         <div class="last-updated">
@@ -783,7 +788,10 @@
     <div class="pairs-container" id="pairs-container">
         {% for pair in pairs %}
         {% set score_percent = (pair.w_score * 100)|round(0)|int if pair.w_score is not none else 0 %}
-        <div class="pair-card" data-score="{{ score_percent }}" data-west-source="{{ pair.w_source }}" data-east-source="{{ pair.e_source }}">
+        <div class="pair-card" 
+             data-score="{{ score_percent }}"
+             data-w-source="{{ pair.w_source }}"
+             data-e-source="{{ pair.e_source }}">
             <div class="pair-header">
                 <span class="dot"></span>
                 <span>Shared Topic Perspective Comparison</span>
@@ -933,36 +941,49 @@
     ============================================================ -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const confidenceSelect = document.getElementById('confidence-filter');
-            const westSourceSelect = document.getElementById('west-source-filter');
-            const eastSourceSelect = document.getElementById('east-source-filter');
+            const confidenceFilter = document.getElementById('confidence-filter');
+            const westSourceFilter = document.getElementById('west-source-filter');
+            const eastSourceFilter = document.getElementById('east-source-filter');
             const cards = document.querySelectorAll('.pair-card[data-score]');
 
-            function applyFilters() {
-                const threshold = parseInt(confidenceSelect.value, 10);
-                const westSource = westSourceSelect.value;
-                const eastSource = eastSourceSelect.value;
+            function filterCards() {
+                const confidenceThreshold = parseInt(confidenceFilter.value, 10);
+                const westSource = westSourceFilter.value;
+                const eastSource = eastSourceFilter.value;
 
                 cards.forEach(card => {
                     const score = parseInt(card.getAttribute('data-score'), 10);
-                    const cardWest = card.getAttribute('data-west-source');
-                    const cardEast = card.getAttribute('data-east-source');
+                    const cardWest = card.getAttribute('data-w-source');
+                    const cardEast = card.getAttribute('data-e-source');
 
-                    const matchesConfidence = (threshold === 0 || score >= threshold);
-                    const matchesWest = (westSource === 'all' || cardWest === westSource);
-                    const matchesEast = (eastSource === 'all' || cardEast === eastSource);
+                    let show = true;
 
-                    if (matchesConfidence && matchesWest && matchesEast) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
+                    // Confidence filter
+                    if (confidenceThreshold > 0 && score < confidenceThreshold) {
+                        show = false;
                     }
+
+                    // West source filter
+                    if (westSource !== 'all' && cardWest !== westSource) {
+                        show = false;
+                    }
+
+                    // East source filter
+                    if (eastSource !== 'all' && cardEast !== eastSource) {
+                        show = false;
+                    }
+
+                    card.style.display = show ? '' : 'none';
                 });
             }
 
-            confidenceSelect.addEventListener('change', applyFilters);
-            westSourceSelect.addEventListener('change', applyFilters);
-            eastSourceSelect.addEventListener('change', applyFilters);
+            // Attach event listeners to all filters
+            confidenceFilter.addEventListener('change', filterCards);
+            westSourceFilter.addEventListener('change', filterCards);
+            eastSourceFilter.addEventListener('change', filterCards);
+
+            // Initial filter
+            filterCards();
         });
     </script>
 
