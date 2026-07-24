@@ -10,7 +10,6 @@ def init_db(db_path):
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     conn = get_db_connection(db_path)
     
-    # Create table with topic_id column
     conn.execute('''
         CREATE TABLE IF NOT EXISTS articles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,15 +20,16 @@ def init_db(db_path):
             viewpoint TEXT NOT NULL,
             published_at TEXT,
             topic_id TEXT,
+            match_score REAL,          -- new column
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
-    # Migration helper: Add topic_id if the table was created previously without it
+    # For existing databases, add match_score if missing
     try:
-        conn.execute("ALTER TABLE articles ADD COLUMN topic_id TEXT")
+        conn.execute("ALTER TABLE articles ADD COLUMN match_score REAL")
     except sqlite3.OperationalError:
-        pass  # Column already exists
+        pass  # already exists
 
     conn.commit()
     conn.close()

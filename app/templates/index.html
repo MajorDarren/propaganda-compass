@@ -294,6 +294,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .west-tag {
@@ -318,6 +319,22 @@
             border-radius: 100px;
             border: 1px solid rgba(255, 255, 255, 0.04);
         }
+
+        /* ----- NEW: confidence badge ----- */
+        .confidence-badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            font-weight: 600;
+            padding: 0.1rem 0.6rem;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-left: 0.3rem;
+            color: var(--text-secondary);
+        }
+        .confidence-badge.high { color: #4ade80; border-color: rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.08); }
+        .confidence-badge.medium { color: #facc15; border-color: rgba(250, 204, 21, 0.3); background: rgba(250, 204, 21, 0.08); }
+        .confidence-badge.low { color: #f87171; border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.08); }
 
         .side .card h3 {
             font-size: 1.05rem;
@@ -611,7 +628,7 @@
             opacity: 1;
         }
 
-        /* ---------- FOOTER (optional extra) ---------- */
+        /* ---------- FOOTER ---------- */
         .footer-note {
             width: 90%;
             max-width: 1200px;
@@ -671,6 +688,19 @@
                         <i class="fas fa-chevron-circle-right tag-icon"></i>
                         Western Angle
                         <span class="source-label">{{ pair.w_source }}</span>
+                        <!-- Confidence badge -->
+                        {% if pair.w_score is not none %}
+                            {% set score = pair.w_score|float %}
+                            {% if score >= 0.6 %}
+                                <span class="confidence-badge high"><i class="fas fa-check-circle"></i> {{ "%.2f"|format(score) }}</span>
+                            {% elif score >= 0.5 %}
+                                <span class="confidence-badge medium"><i class="fas fa-minus-circle"></i> {{ "%.2f"|format(score) }}</span>
+                            {% else %}
+                                <span class="confidence-badge low"><i class="fas fa-exclamation-circle"></i> {{ "%.2f"|format(score) }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="confidence-badge">N/A</span>
+                        {% endif %}
                     </div>
                     <div class="card">
                         <h3>
@@ -693,6 +723,19 @@
                         <i class="fas fa-chevron-circle-right tag-icon"></i>
                         Eastern Angle
                         <span class="source-label">{{ pair.e_source }}</span>
+                        <!-- Confidence badge (same score) -->
+                        {% if pair.e_score is not none %}
+                            {% set score = pair.e_score|float %}
+                            {% if score >= 0.6 %}
+                                <span class="confidence-badge high"><i class="fas fa-check-circle"></i> {{ "%.2f"|format(score) }}</span>
+                            {% elif score >= 0.5 %}
+                                <span class="confidence-badge medium"><i class="fas fa-minus-circle"></i> {{ "%.2f"|format(score) }}</span>
+                            {% else %}
+                                <span class="confidence-badge low"><i class="fas fa-exclamation-circle"></i> {{ "%.2f"|format(score) }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="confidence-badge">N/A</span>
+                        {% endif %}
                     </div>
                     <div class="card">
                         <h3>

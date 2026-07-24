@@ -8,11 +8,11 @@ main_bp = Blueprint('main', __name__)
 def index():
     conn = get_db_connection(current_app.config['DATABASE_PATH'])
     
-    # 1. Fetch matched pairs (where both West & East exist for same topic_id)
+    # 1. Fetch matched pairs (including match_score)
     matched_rows = conn.execute('''
         SELECT 
-            w.title as w_title, w.url as w_url, w.source as w_source, w.summary as w_summary,
-            e.title as e_title, e.url as e_url, e.source as e_source, e.summary as e_summary
+            w.title as w_title, w.url as w_url, w.source as w_source, w.summary as w_summary, w.match_score as w_score,
+            e.title as e_title, e.url as e_url, e.source as e_source, e.summary as e_summary, e.match_score as e_score
         FROM articles w
         JOIN articles e ON w.topic_id = e.topic_id
         WHERE w.viewpoint = 'West' AND e.viewpoint = 'East'
@@ -48,23 +48,23 @@ def ingest():
     
     conn = get_db_connection(current_app.config['DATABASE_PATH'])
     
-    # Wipe old records on every fresh incoming batch
     conn.execute('DELETE FROM articles;')
     
     inserted_count = 0
     for item in articles:
         try:
             conn.execute('''
-                INSERT INTO articles (title, url, source, summary, viewpoint, published_at, topic_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO articles (title, url, source, summary, viewpoint, published_at, topic_id, match_score)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
-                item['title'], 
-                item['url'], 
-                item['source'], 
-                item.get('summary', ''), 
-                item['viewpoint'], 
+                item['title'],
+                item['url'],
+                item['source'],
+                item.get('summary', ''),
+                item['viewpoint'],
                 item.get('published_at', ''),
-                item.get('topic_id', '')
+                item.get('topic_id', ''),
+                item.get('match_score')   # can be None
             ))
             inserted_count += 1
         except Exception as e:
