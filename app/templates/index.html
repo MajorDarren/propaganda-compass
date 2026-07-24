@@ -672,6 +672,49 @@
             color: var(--west);
             opacity: 0.5;
         }
+
+        /* ---------- ADDITIONAL FILTER STYLES ---------- */
+        .filter-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto 1.5rem auto;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+        .filter-container select {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .filter-container select:hover {
+            border-color: var(--border-glow);
+        }
+        .last-updated {
+            margin-left: auto;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        @media (max-width: 768px) {
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+            .last-updated {
+                margin-left: 0;
+                text-align: right;
+            }
+        }
     </style>
 </head>
 
@@ -690,6 +733,28 @@
     </header>
 
     <!-- ============================================================
+    FILTER & LAST UPDATED
+    ============================================================ -->
+    <div class="filter-container">
+        <div>
+            <label for="confidence-filter"><i class="fas fa-sliders-h"></i> Confidence:</label>
+            <select id="confidence-filter">
+                <option value="0">All matches</option>
+                <option value="60">≥ 60%</option>
+                <option value="70">≥ 70%</option>
+                <option value="80">≥ 80%</option>
+            </select>
+        </div>
+        <div class="last-updated">
+            {% if last_updated %}
+                <i class="far fa-clock"></i> Last updated: {{ last_updated.strftime('%d %b %Y, %H:%M UTC') }}
+            {% else %}
+                <i class="far fa-clock"></i> No data yet
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ============================================================
     MATCHED PAIRS
     ============================================================ -->
     <h2 class="section-title">
@@ -697,24 +762,23 @@
         <span class="count">{{ pairs|length }} pairs</span>
     </h2>
 
-    <div class="pairs-container">
+    <div class="pairs-container" id="pairs-container">
         {% for pair in pairs %}
-        <div class="pair-card">
+        {% set score_percent = (pair.w_score * 100)|round(0)|int if pair.w_score is not none else 0 %}
+        <div class="pair-card" data-score="{{ score_percent }}">
             <div class="pair-header">
                 <span class="dot"></span>
                 <span>Shared Topic Perspective Comparison</span>
                 <span class="dot east-dot" style="margin-left:auto;"></span>
 
-                <!-- Combined match info (score as percentage + time diff) -->
                 <div class="match-info">
                     {% if pair.w_score is not none %}
-                        {% set score = pair.w_score|float %}
-                        {% set percent = (score * 100)|round(0)|int %}
-                        {% if score >= 0.6 %}
+                        {% set percent = score_percent %}
+                        {% if percent >= 60 %}
                             <span class="score-badge high">
                                 <i class="fas fa-check-circle"></i> {{ percent }}%
                             </span>
-                        {% elif score >= 0.5 %}
+                        {% elif percent >= 50 %}
                             <span class="score-badge medium">
                                 <i class="fas fa-minus-circle"></i> {{ percent }}%
                             </span>
@@ -845,6 +909,28 @@
             Confidence score (0–100%): higher = more semantically similar. Time difference: hours between publication times.
         </span>
     </div>
+
+    <!-- ============================================================
+    JAVASCRIPT FILTER
+    ============================================================ -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterSelect = document.getElementById('confidence-filter');
+            const cards = document.querySelectorAll('.pair-card[data-score]');
+
+            filterSelect.addEventListener('change', function() {
+                const threshold = parseInt(this.value, 10);
+                cards.forEach(card => {
+                    const score = parseInt(card.getAttribute('data-score'), 10);
+                    if (threshold === 0 || score >= threshold) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
 
 </body>
 </html>

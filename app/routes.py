@@ -22,7 +22,11 @@ def index():
         LIMIT 15
     ''').fetchall()
 
-    # Solo articles (unchanged)
+    # Get last updated timestamp (max created_at from all articles)
+    last_updated_row = conn.execute('SELECT MAX(created_at) as last_updated FROM articles').fetchone()
+    last_updated = last_updated_row['last_updated'] if last_updated_row and last_updated_row['last_updated'] else None
+
+    # Solo articles
     west_solos = conn.execute('''
         SELECT * FROM articles 
         WHERE viewpoint = 'West' 
@@ -38,9 +42,12 @@ def index():
     ''').fetchall()
 
     conn.close()
-    return render_template('index.html', pairs=matched_rows, west_solos=west_solos, east_solos=east_solos)
+    return render_template('index.html', 
+                           pairs=matched_rows, 
+                           west_solos=west_solos, 
+                           east_solos=east_solos,
+                           last_updated=last_updated)
 
-# /api/ingest remains the same, but update INSERT to include time_diff_hours
 @main_bp.route('/api/ingest', methods=['POST'])
 def ingest():
     secret = request.headers.get('X-Webhook-Secret')
