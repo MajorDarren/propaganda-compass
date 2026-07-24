@@ -13,7 +13,7 @@ def clean_html(raw_html):
     clean_text = re.sub('<.*?>', '', raw_html)
     return clean_text.strip()[:250] + "..." if len(clean_text) > 250 else clean_text.strip()
 
-def match_articles(west_articles, east_articles, similarity_threshold=0.38):
+def match_articles(west_articles, east_articles, similarity_threshold=0.55):
     """Calculates cosine similarity between West and East articles using Title + Summary."""
     if not west_articles or not east_articles:
         return west_articles + east_articles

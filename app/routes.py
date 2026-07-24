@@ -47,13 +47,15 @@ def ingest():
     articles = data.get('articles', [])
     
     conn = get_db_connection(current_app.config['DATABASE_PATH'])
+    
+    # Wipe old records on every fresh incoming batch
+    conn.execute('DELETE FROM articles;')
+    
     inserted_count = 0
-
     for item in articles:
         try:
-            # Using 'INSERT OR REPLACE INTO' ensures existing URLs get updated with new topic_ids
             conn.execute('''
-                INSERT OR REPLACE INTO articles (title, url, source, summary, viewpoint, published_at, topic_id)
+                INSERT INTO articles (title, url, source, summary, viewpoint, published_at, topic_id)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             ''', (
                 item['title'], 
