@@ -1,0 +1,10 @@
+{
+  "West": [
+    {"name": "BBC News", "rss": "http://feeds.bbci.co.uk/news/world/rss.xml"},
+    {"name": "CNN World", "rss": "http://rss.cnn.com/rss/edition_world.rss"}
+  ],
+  "East": [
+    {"name": "RT World", "rss": "https://www.rt.com/rss/news/"},
+    {"name": "CGTN World", "rss": "https://www.cgtn.com/rss/world.xml"}
+  ]
+}
