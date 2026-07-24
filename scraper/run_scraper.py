@@ -91,7 +91,11 @@ def scrape_and_push():
         return
 
     base_path = os.path.dirname(os.path.abspath(__file__))
-    with open(os.path.join(base_path, 'sources.json'), 'r') as f:
+    sources_path = os.path.join(base_path, 'sources.json')
+    if not os.path.exists(sources_path):
+        # fallback: try parent directory if scraper is in a subfolder
+        sources_path = os.path.join(os.path.dirname(base_path), 'sources.json')
+    with open(sources_path, 'r') as f:
         sources = json.load(f)
 
     west_articles = []
@@ -100,7 +104,15 @@ def scrape_and_push():
     for viewpoint, feed_list in sources.items():
         for source in feed_list:
             print(f"Fetching [{viewpoint}] {source['name']}...")
-            feed = feedparser.parse(source['rss'])
+            try:
+                # Set a timeout of 30 seconds for the request
+                feed = feedparser.parse(source['rss'], request_headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
+                if feed.bozo:  # feedparser sets bozo flag on parse errors
+                    print(f"⚠️ Failed to parse {source['name']}: {feed.bozo_exception}")
+                    continue
+            except Exception as e:
+                print(f"❌ Error fetching {source['name']}: {e}")
+                continue
 
             for entry in feed.entries[:10]:
                 title = entry.get('title', '')
