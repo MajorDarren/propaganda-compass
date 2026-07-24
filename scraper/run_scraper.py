@@ -141,7 +141,7 @@ def scrape_and_push():
                         east_articles.append(item)
 
     all_articles = match_articles(west_articles, east_articles,
-                                  similarity_threshold=0.55,
+                                  similarity_threshold=0.60,
                                   max_time_hours=10)
 
     # Remove datetime object before sending JSON
