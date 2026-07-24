@@ -13,20 +13,21 @@ def clean_html(raw_html):
     clean_text = re.sub('<.*?>', '', raw_html)
     return clean_text.strip()[:250] + "..." if len(clean_text) > 250 else clean_text.strip()
 
-def match_articles(west_articles, east_articles, similarity_threshold=0.50):
-    """Calculates cosine similarity between West and East headlines and tags matching pairs."""
+def match_articles(west_articles, east_articles, similarity_threshold=0.38):
+    """Calculates cosine similarity between West and East articles using Title + Summary."""
     if not west_articles or not east_articles:
         return west_articles + east_articles
 
     print("Loading AI Embedding Model (all-MiniLM-L6-v2)...")
     model = SentenceTransformer('all-MiniLM-L6-v2')
 
-    west_titles = [a['title'] for a in west_articles]
-    east_titles = [a['title'] for a in east_articles]
+    # Combine Title and Summary for richer vector context
+    west_texts = [f"{a['title']}. {a['summary']}" for a in west_articles]
+    east_texts = [f"{a['title']}. {a['summary']}" for a in east_articles]
 
     # Generate vector embeddings
-    west_vecs = model.encode(west_titles)
-    east_vecs = model.encode(east_titles)
+    west_vecs = model.encode(west_texts)
+    east_vecs = model.encode(east_texts)
 
     # Compute similarity matrix (West x East)
     sim_matrix = cosine_similarity(west_vecs, east_vecs)
@@ -35,7 +36,7 @@ def match_articles(west_articles, east_articles, similarity_threshold=0.50):
     candidate_pairs = []
     for w_idx in range(len(west_articles)):
         for e_idx in range(len(east_articles)):
-            score = sim_matrix[w_idx][e_idx]
+            score = float(sim_matrix[w_idx][e_idx])
             if score >= similarity_threshold:
                 candidate_pairs.append((score, w_idx, e_idx))
 
@@ -53,7 +54,7 @@ def match_articles(west_articles, east_articles, similarity_threshold=0.50):
             east_articles[e_idx]['topic_id'] = topic_id
             used_west.add(w_idx)
             used_east.add(e_idx)
-            print(f"Matched ({score:.2f}): '{west_titles[w_idx]}' <---> '{east_titles[e_idx]}'")
+            print(f"Matched ({score:.2f}): '{west_articles[w_idx]['title']}' <---> '{east_articles[e_idx]['title']}'")
 
     # Assign solo topic_ids to unmatched articles
     for w_idx, item in enumerate(west_articles):
