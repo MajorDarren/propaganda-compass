@@ -3,11 +3,15 @@ import json
 import re
 import uuid
 import time
+import socket
 from datetime import datetime, timezone
 import feedparser
 import requests
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+
+# Set a global timeout for all socket operations (30 seconds)
+socket.setdefaulttimeout(30)
 
 def clean_html(raw_html):
     if not raw_html:
@@ -93,7 +97,6 @@ def scrape_and_push():
     base_path = os.path.dirname(os.path.abspath(__file__))
     sources_path = os.path.join(base_path, 'sources.json')
     if not os.path.exists(sources_path):
-        # fallback: try parent directory if scraper is in a subfolder
         sources_path = os.path.join(os.path.dirname(base_path), 'sources.json')
     with open(sources_path, 'r') as f:
         sources = json.load(f)
@@ -105,9 +108,8 @@ def scrape_and_push():
         for source in feed_list:
             print(f"Fetching [{viewpoint}] {source['name']}...")
             try:
-                # Set a timeout of 30 seconds for the request
-                feed = feedparser.parse(source['rss'], request_headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
-                if feed.bozo:  # feedparser sets bozo flag on parse errors
+                feed = feedparser.parse(source['rss'], request_headers={'User-Agent': 'Mozilla/5.0'})
+                if feed.bozo:
                     print(f"⚠️ Failed to parse {source['name']}: {feed.bozo_exception}")
                     continue
             except Exception as e:
