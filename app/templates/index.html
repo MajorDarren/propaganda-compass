@@ -260,7 +260,7 @@
             }
         }
 
-        /* ----- New combined match info in header ----- */
+        /* ----- Combined match info ----- */
         .match-info {
             display: flex;
             align-items: center;
@@ -705,27 +705,28 @@
                 <span>Shared Topic Perspective Comparison</span>
                 <span class="dot east-dot" style="margin-left:auto;"></span>
 
-                <!-- Combined match info (score + time diff) -->
+                <!-- Combined match info (score as percentage + time diff) -->
                 <div class="match-info">
                     {% if pair.w_score is not none %}
                         {% set score = pair.w_score|float %}
+                        {% set percent = (score * 100)|round(0)|int %}
                         {% if score >= 0.6 %}
                             <span class="score-badge high">
-                                <i class="fas fa-check-circle"></i> {{ "%.2f"|format(score) }}
+                                <i class="fas fa-check-circle"></i> {{ percent }}%
                             </span>
                         {% elif score >= 0.5 %}
                             <span class="score-badge medium">
-                                <i class="fas fa-minus-circle"></i> {{ "%.2f"|format(score) }}
+                                <i class="fas fa-minus-circle"></i> {{ percent }}%
                             </span>
                         {% else %}
                             <span class="score-badge low">
-                                <i class="fas fa-exclamation-circle"></i> {{ "%.2f"|format(score) }}
+                                <i class="fas fa-exclamation-circle"></i> {{ percent }}%
                             </span>
                         {% endif %}
                         <span class="time-diff">
                             <i class="far fa-clock"></i> {{ pair.w_time_diff|float|round(1) }}h apart
                         </span>
-                        <span class="help-icon" title="Confidence score (0-1) indicates how similar the articles are. Time difference shows how far apart they were published.">
+                        <span class="help-icon" title="Confidence score (0–100%) indicates how similar the articles are. Time difference shows how far apart they were published.">
                             <i class="fas fa-question-circle"></i>
                         </span>
                     {% else %}
@@ -841,7 +842,7 @@
         <i class="fas fa-compass"></i> &nbsp; Propaganda Compass &bull; AI-powered perspective mapping
         <br>
         <span style="font-size:0.65rem; opacity:0.6;">
-            Confidence score: 0-1, higher = more semantically similar. Time difference: hours between publication times.
+            Confidence score (0–100%): higher = more semantically similar. Time difference: hours between publication times.
         </span>
     </div>
 
