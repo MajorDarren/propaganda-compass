@@ -745,6 +745,24 @@
                 <option value="80">≥ 80%</option>
             </select>
         </div>
+        <div>
+            <label for="west-source-filter"><i class="fas fa-globe-americas"></i> West:</label>
+            <select id="west-source-filter">
+                <option value="all">All sources</option>
+                {% for src in west_sources %}
+                <option value="{{ src }}">{{ src }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="east-source-filter"><i class="fas fa-globe-asia"></i> East:</label>
+            <select id="east-source-filter">
+                <option value="all">All sources</option>
+                {% for src in east_sources %}
+                <option value="{{ src }}">{{ src }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="last-updated">
             {% if last_updated %}
                 <i class="far fa-clock"></i> Last updated: {{ last_updated.strftime('%d %b %Y, %H:%M UTC') }}
@@ -765,7 +783,7 @@
     <div class="pairs-container" id="pairs-container">
         {% for pair in pairs %}
         {% set score_percent = (pair.w_score * 100)|round(0)|int if pair.w_score is not none else 0 %}
-        <div class="pair-card" data-score="{{ score_percent }}">
+        <div class="pair-card" data-score="{{ score_percent }}" data-west-source="{{ pair.w_source }}" data-east-source="{{ pair.e_source }}">
             <div class="pair-header">
                 <span class="dot"></span>
                 <span>Shared Topic Perspective Comparison</span>
@@ -911,24 +929,40 @@
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT FILTER
+    JAVASCRIPT FILTERS
     ============================================================ -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const filterSelect = document.getElementById('confidence-filter');
+            const confidenceSelect = document.getElementById('confidence-filter');
+            const westSourceSelect = document.getElementById('west-source-filter');
+            const eastSourceSelect = document.getElementById('east-source-filter');
             const cards = document.querySelectorAll('.pair-card[data-score]');
 
-            filterSelect.addEventListener('change', function() {
-                const threshold = parseInt(this.value, 10);
+            function applyFilters() {
+                const threshold = parseInt(confidenceSelect.value, 10);
+                const westSource = westSourceSelect.value;
+                const eastSource = eastSourceSelect.value;
+
                 cards.forEach(card => {
                     const score = parseInt(card.getAttribute('data-score'), 10);
-                    if (threshold === 0 || score >= threshold) {
+                    const cardWest = card.getAttribute('data-west-source');
+                    const cardEast = card.getAttribute('data-east-source');
+
+                    const matchesConfidence = (threshold === 0 || score >= threshold);
+                    const matchesWest = (westSource === 'all' || cardWest === westSource);
+                    const matchesEast = (eastSource === 'all' || cardEast === eastSource);
+
+                    if (matchesConfidence && matchesWest && matchesEast) {
                         card.style.display = '';
                     } else {
                         card.style.display = 'none';
                     }
                 });
-            });
+            }
+
+            confidenceSelect.addEventListener('change', applyFilters);
+            westSourceSelect.addEventListener('change', applyFilters);
+            eastSourceSelect.addEventListener('change', applyFilters);
         });
     </script>
 
