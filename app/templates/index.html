@@ -13,10 +13,624 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-    <!-- External stylesheet -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
-    <!-- If you're not using Flask, use a relative path like: href="static/css/styles.css" -->
+    <style>
+        /* ============================================================
+                   ALL STYLES — embedded for single-file deployment
+                   ============================================================ */
+
+        /* ---------- RESET & BASE ---------- */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-primary: #060b18;
+            --bg-secondary: #0d1428;
+            --bg-card: rgba(20, 30, 60, 0.65);
+            --bg-card-hover: rgba(30, 45, 80, 0.8);
+            --border-subtle: rgba(56, 189, 248, 0.12);
+            --border-glow: rgba(56, 189, 248, 0.25);
+
+            --west: #38bdf8;
+            --west-glow: rgba(56, 189, 248, 0.35);
+            --west-dark: #0b2a4a;
+            --east: #f43f5e;
+            --east-glow: rgba(244, 63, 94, 0.35);
+            --east-dark: #4a0b1a;
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --radius: 16px;
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.6);
+            --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 4rem;
+            background-image:
+                radial-gradient(ellipse at 10% 20%, rgba(56, 189, 248, 0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 90% 80%, rgba(244, 63, 94, 0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 50%, rgba(56, 189, 248, 0.01) 0%, transparent 70%);
+            background-attachment: fixed;
+        }
+
+        /* ---------- SCROLLBAR ---------- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e3a5f;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2a4a7a;
+        }
+
+        /* ---------- HEADER ---------- */
+        header {
+            text-align: center;
+            padding: 2.5rem 1.5rem 2rem;
+            background: linear-gradient(180deg, rgba(13, 20, 40, 0.95) 0%, rgba(6, 11, 24, 0.8) 100%);
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--west), var(--east), transparent);
+            opacity: 0.6;
+        }
+
+        header .logo-icon {
+            font-size: 2.4rem;
+            margin-bottom: 0.25rem;
+            display: inline-block;
+            background: linear-gradient(135deg, var(--west), var(--east));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.15));
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.4rem;
+        }
+
+        header .sub {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        header .sub .badge {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.2rem 0.8rem;
+            border-radius: 100px;
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--west);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            -webkit-text-fill-color: var(--west);
+        }
+
+        header .sub .badge.east-badge {
+            background: rgba(244, 63, 94, 0.12);
+            color: var(--east);
+            border-color: rgba(244, 63, 94, 0.15);
+            -webkit-text-fill-color: var(--east);
+        }
+
+        /* ---------- SECTION TITLE ---------- */
+        .section-title {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto 1.2rem auto;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title .icon {
+            font-size: 1.2rem;
+        }
+        .section-title .count {
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(56, 189, 248, 0.08);
+            padding: 0.15rem 0.65rem;
+            border-radius: 100px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        /* ---------- PAIRS CONTAINER ---------- */
+        .pairs-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto 3rem auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        /* ---------- PAIR CARD ---------- */
+        .pair-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+        }
+
+        .pair-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
+            border-color: var(--border-glow);
+        }
+
+        .pair-header {
+            background: rgba(6, 11, 24, 0.7);
+            padding: 0.7rem 1.4rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .pair-header .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--west);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        .pair-header .dot.east-dot {
+            background: var(--east);
+            animation-delay: 0.5s;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 0.4;
+                transform: scale(0.9);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        .pair-body {
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* ---------- SIDE ---------- */
+        .side {
+            flex: 1;
+            padding: 1.4rem 1.6rem;
+            position: relative;
+            transition: background var(--transition);
+        }
+
+        .side-west {
+            border-right: 1px solid var(--border-subtle);
+            background: radial-gradient(ellipse at 0% 50%, rgba(56, 189, 248, 0.03) 0%, transparent 70%);
+        }
+
+        .side-east {
+            background: radial-gradient(ellipse at 100% 50%, rgba(244, 63, 94, 0.03) 0%, transparent 70%);
+        }
+
+        .side:hover {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .side-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .west-tag {
+            color: var(--west);
+        }
+        .west-tag .tag-icon {
+            color: var(--west);
+        }
+        .east-tag {
+            color: var(--east);
+        }
+        .east-tag .tag-icon {
+            color: var(--east);
+        }
+
+        .side .source-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.1rem 0.6rem;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .side .card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 0.3rem;
+        }
+
+        .side .card h3 a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        .side .card h3 a:hover {
+            color: var(--west);
+        }
+
+        .side-east .card h3 a:hover {
+            color: var(--east);
+        }
+
+        .side .meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin: 0.3rem 0 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .side .meta .source-badge {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .side .summary {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-top: 0.3rem;
+            opacity: 0.9;
+        }
+
+        .side .read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--west);
+            text-decoration: none;
+            transition: gap var(--transition);
+        }
+
+        .side-east .read-more {
+            color: var(--east);
+        }
+
+        .side .read-more:hover {
+            gap: 0.8rem;
+        }
+
+        /* ---------- GLOW ACCENT LINE ON SIDE ---------- */
+        .side-west::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, transparent, var(--west), transparent);
+            opacity: 0.3;
+        }
+
+        .side-east::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, transparent, var(--east), transparent);
+            opacity: 0.3;
+        }
+
+        /* ---------- STANDALONE SECTION ---------- */
+        .solos-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .column {
+            flex: 1;
+        }
+
+        .column-title {
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .col-west-title {
+            color: var(--west);
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        .col-east-title {
+            color: var(--east);
+            border-color: rgba(244, 63, 94, 0.2);
+        }
+
+        .solo-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 0.9rem;
+            border: 1px solid var(--border-subtle);
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+            cursor: default;
+        }
+
+        .solo-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-card);
+            border-color: rgba(56, 189, 248, 0.15);
+        }
+
+        .col-east .solo-card:hover {
+            border-color: rgba(244, 63, 94, 0.15);
+        }
+
+        .solo-card h3 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .solo-card h3 a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        .solo-card h3 a:hover {
+            color: var(--west);
+        }
+
+        .col-east .solo-card h3 a:hover {
+            color: var(--east);
+        }
+
+        .solo-card .meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .solo-card .meta .source-badge {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* ---------- EMPTY STATE ---------- */
+        .empty-state {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 1rem 0;
+            font-style: italic;
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.6rem;
+            }
+            header .sub {
+                font-size: 0.8rem;
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .pair-body {
+                flex-direction: column;
+            }
+            .side-west {
+                border-right: none;
+                border-bottom: 1px solid var(--border-subtle);
+            }
+            .side-west::after {
+                width: 100%;
+                height: 2px;
+                top: auto;
+                bottom: 0;
+                left: 0;
+                background: linear-gradient(90deg, transparent, var(--west), transparent);
+            }
+            .side-east::after {
+                width: 100%;
+                height: 2px;
+                top: 0;
+                right: auto;
+                left: 0;
+                background: linear-gradient(90deg, transparent, var(--east), transparent);
+            }
+
+            .solos-container {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .section-title {
+                font-size: 0.9rem;
+            }
+            .side .card h3 {
+                font-size: 0.95rem;
+            }
+            .pair-card:hover {
+                transform: translateY(-2px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 1.5rem 1rem;
+            }
+            header h1 {
+                font-size: 1.3rem;
+            }
+            .side {
+                padding: 1rem;
+            }
+            .pair-header {
+                font-size: 0.6rem;
+                padding: 0.5rem 1rem;
+            }
+            .solo-card {
+                padding: 0.8rem 1rem;
+            }
+            .solo-card h3 {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* ---------- UTILITY ---------- */
+        .text-glow-west {
+            text-shadow: 0 0 40px rgba(56, 189, 248, 0.1);
+        }
+        .text-glow-east {
+            text-shadow: 0 0 40px rgba(244, 63, 94, 0.1);
+        }
+
+        /* subtle shimmer on pair cards */
+        .pair-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pair-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(56, 189, 248, 0.02) 0%, transparent 60%),
+                radial-gradient(circle at 70% 60%, rgba(244, 63, 94, 0.02) 0%, transparent 60%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .pair-card:hover::before {
+            opacity: 1;
+        }
+
+        /* ---------- FOOTER (optional extra) ---------- */
+        .footer-note {
+            width: 90%;
+            max-width: 1200px;
+            margin: 3rem auto 0;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 1.5rem;
+            letter-spacing: 0.3px;
+        }
+
+        .footer-note i {
+            color: var(--west);
+            opacity: 0.5;
+        }
+    </style>
 </head>
+
 <body>
 
     <!-- ============================================================
